@@ -41,7 +41,7 @@ int GetDayIndex(int year, int month, int day) {
 	int m = month + 12 * a - 2;
 	return (day + y + y / 4 - y / 100 + y / 400 + (31 * m) / 12) % 7;
 }
-
+//
 void PrintDayNames() {
 	for (int i = 0; i < 7; i++)
 		cout << setw(4) << GetDayName(i);
