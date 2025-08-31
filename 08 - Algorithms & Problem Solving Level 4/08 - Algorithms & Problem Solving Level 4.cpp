@@ -1,6 +1,17 @@
+﻿#pragma warning(disable : 4996)
+
+#include <ctime>
 #include <iostream>
 #include <iomanip>
+
 using namespace std;
+struct sDate
+{
+	int Year;
+	int Month;
+	int Day;
+};
+sDate IncreaseDateByOne(sDate Date);
 
 int ReadNumber(string message) {
 	int Number;
@@ -9,12 +20,6 @@ int ReadNumber(string message) {
 	return Number;
 }
 
-struct sDate
-{
-	int Year;
-	int Month;
-	int Day;
-};
 
 bool IsLeapYear(int year) {
 	return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
@@ -44,21 +49,6 @@ int PrintTotalDaysFromTheBeginningOfYear(int year, int month, int day) {
 
 }
 
-bool IsLastDayInMonth(int day, int month, int year) {
-
-	if (NumberOfDaysInMonth(month, year) == day)
-		return true;
-	return false;
-
-}
-
-bool IsLastMonthInYear(int month) {
-
-	if (month == 12)
-		return true;
-	return false;
-}
-
 sDate ReadFullDate() {
 	sDate Date;
 
@@ -69,30 +59,141 @@ sDate ReadFullDate() {
 	return Date;
 }
 
+bool IsLastDayInMonth(sDate Date) {
+
+	return (Date.Day == NumberOfDaysInMonth(Date.Month, Date.Year));
+
+}
+
+bool IsLastMonthInYear(int month) {
+
+	return (month == 12);
+}
+
+bool IsDate1BeforeDate2(sDate Date1, sDate Date2)
+{
+	return  (Date1.Year < Date2.Year) ? true : ((Date1.Year == Date2.Year) ?
+		(Date1.Month < Date2.Month ? true : (Date1.Month == Date2.Month ?
+			Date1.Day < Date2.Day : false)) : false);
+}
+
+void SwapDates(sDate& date1, sDate& date2) {
+
+	sDate TempDate;
+
+	TempDate.Year = date1.Year;
+	TempDate.Month = date1.Month;
+	TempDate.Day = date1.Day;
+
+	date1.Year = date2.Year;
+	date1.Month = date2.Month;
+	date1.Day = date2.Day;
+
+	date2.Year = TempDate.Year;
+	date2.Month = TempDate.Month;
+	date2.Day = TempDate.Day;
+}
+
+int GetDifferenceInDays(sDate date, sDate date1, bool IncludeEndDay = false) {
+
+	int days = 0;
+	short swapFlagValue = 1;
+
+	if (!IsDate1BeforeDate2(date, date1)) {
+		SwapDates(date, date1);
+		swapFlagValue = -1;
+	}
+
+	while (IsDate1BeforeDate2(date, date1))
+	{
+		days++;
+		date = IncreaseDateByOne(date);
+	}
+
+	return IncludeEndDay ? ++days * swapFlagValue : days * swapFlagValue;
+}
+
+int CompareTwoDates(sDate date, sDate date1, bool flag = false) {
+
+	int total1Days = 0;
+	int total2Days = 0;
+
+	for (int i = 1; i <= date.Month - 1; i++)
+	{
+		total1Days += NumberOfDaysInMonth(i, date.Year);
+	}
+	total1Days += date.Day;
+
+
+	for (int i = 1; i <= date1.Month - 1; i++)
+	{
+		total2Days += NumberOfDaysInMonth(i, date1.Year);
+	}
+	total2Days += date1.Day;
+
+
+	return flag ? (abs(total1Days - total2Days) + 1) : abs(total1Days - total2Days);
+
+}
+
+sDate GetSystemDate() {
+
+	sDate date;
+
+	time_t t = time(0);
+	tm* now = localtime(&t);
+
+	date.Year = now->tm_year + 1900;
+	date.Month = now->tm_mon + 1;
+	date.Day = now->tm_mday;
+
+	return date;
+}
+
+sDate IncreaseDateByOne(sDate Date) {
+
+	if (IsLastDayInMonth(Date)) {
+		if (IsLastMonthInYear(Date.Month)) {
+			Date.Month = 1;
+			Date.Day = 1;
+			Date.Year++;
+		}
+		else
+		{
+			Date.Day = 1;
+			Date.Month++;
+		}
+	}
+	else
+	{
+		Date.Day++;
+	}
+
+	return Date;
+}
+
+sDate IncreaseDateByXDays(sDate Date, int day) {
+
+	while (true)
+	{
+
+	}
+
+	return Date;
+}
+
+
 int main() {
-	int day = ReadNumber("Please enter a Day : ");
-	int month = ReadNumber("Please enter a Month : ");
-	int year = ReadNumber("Please enter a Year : ");
 
-	if (IsLastDayInMonth(day, month, year)) {
+	sDate Date = ReadFullDate();
+	sDate NextDate = IncreaseDateByOne(Date);
 
-		cout << "\nYes , Day is last day in month. ";
-	}
-	else
-	{
-		cout << "\nNo , Day isn't last day in month. ";
+	cout << "\n01-Adding one day is : " << NextDate.Day << "/" << NextDate.Month << "/" << NextDate.Year << endl;
 
-	}
+	int inputForDay = ReadNumber("How Much Day do you want to add : ");
 
-	if (IsLastMonthInYear(month)) {
-
-		cout << "\nYes, Month is last Month in year";
-	}
-	else
-	{
-		cout << "\nNo, Month isn't last Month in year";
-
-	}
+	IncreaseDateByXDays(NextDate, inputForDay);
+	cout << "\n02 - Adding " << inputForDay << " days is : " << NextDate.Day << "/" << NextDate.Month << "/" << NextDate.Year << endl;
 
 	return 0;
 }
@@ -1073,7 +1174,7 @@ namespace problems {
 		}
 
 	};
-	class Problem15{
+	class Problem15 {
 		int ReadNumber(string message) {
 			int Number;
 			cout << message;
@@ -1166,6 +1267,392 @@ namespace problems {
 
 			}
 
+			return 0;
+		}
+	};
+	class Problem16Review {
+		int ReadNumber(string message) {
+			int Number;
+			cout << message;
+			cin >> Number;
+			return Number;
+		}
+
+		struct sDate
+		{
+			int Year;
+			int Month;
+			int Day;
+		};
+
+		bool IsLeapYear(int year) {
+			return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+		}
+
+		int NumberOfDaysInMonth(int month, int year) {
+			if (month < 1 || month > 12)
+				return 0;
+
+			int arrDays[12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+
+			if (month == 2)
+				return IsLeapYear(year) ? 29 : 28;
+			return arrDays[month - 1];
+		}
+
+		int PrintTotalDaysFromTheBeginningOfYear(int year, int month, int day) {
+
+			int TotalDays = 0;
+
+			for (int i = 1; i <= month - 1; i++)
+			{
+				TotalDays += NumberOfDaysInMonth(i, year);
+			}
+			TotalDays += day;
+			return TotalDays;
+
+		}
+
+		sDate ReadFullDate() {
+			sDate Date;
+
+			Date.Day = ReadNumber("\nPlease enter a Day : ");
+			Date.Month = ReadNumber("\nPlease enter a Month : ");
+			Date.Year = ReadNumber("\nPlease enter a Year : ");
+
+			return Date;
+		}
+
+		bool IsLastDayInMonth(sDate Date) {
+
+			return (Date.Day == NumberOfDaysInMonth(Date.Month, Date.Year));
+
+		}
+
+		bool IsLastMonthInYear(int month) {
+
+			return (month == 12);
+		}
+
+		sDate IncreaseDateByOne(sDate Date) {
+
+			if (IsLastDayInMonth(Date)) {
+				if (IsLastMonthInYear(Date.Month)) {
+					Date.Month = 1;
+					Date.Day = 1;
+					Date.Year++;
+				}
+				else
+				{
+					Date.Day = 1;
+					Date.Month++;
+				}
+			}
+			else
+			{
+				Date.Day++;
+			}
+
+			return Date;
+		}
+
+		int main() {
+			sDate Date = ReadFullDate();
+			sDate NextDate = IncreaseDateByOne(Date);
+
+			cout << "\nNext Date: " << NextDate.Day << "/" << NextDate.Month << "/" << NextDate.Year << endl;
+
+			return 0;
+		}
+	};
+	class Problem17Review {
+		int ReadNumber(string message) {
+			int Number;
+			cout << message;
+			cin >> Number;
+			return Number;
+		}
+
+		struct sDate
+		{
+			int Year;
+			int Month;
+			int Day;
+		};
+
+		bool IsLeapYear(int year) {
+			return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+		}
+
+		int NumberOfDaysInMonth(int month, int year) {
+			if (month < 1 || month > 12)
+				return 0;
+
+			int arrDays[12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+
+			if (month == 2)
+				return IsLeapYear(year) ? 29 : 28;
+			return arrDays[month - 1];
+		}
+
+		int PrintTotalDaysFromTheBeginningOfYear(int year, int month, int day) {
+
+			int TotalDays = 0;
+
+			for (int i = 1; i <= month - 1; i++)
+			{
+				TotalDays += NumberOfDaysInMonth(i, year);
+			}
+			TotalDays += day;
+			return TotalDays;
+
+		}
+
+		sDate ReadFullDate() {
+			sDate Date;
+
+			Date.Day = ReadNumber("\nPlease enter a Day : ");
+			Date.Month = ReadNumber("\nPlease enter a Month : ");
+			Date.Year = ReadNumber("\nPlease enter a Year : ");
+
+			return Date;
+		}
+
+		bool IsLastDayInMonth(sDate Date) {
+
+			return (Date.Day == NumberOfDaysInMonth(Date.Month, Date.Year));
+
+		}
+
+		bool IsLastMonthInYear(int month) {
+
+			return (month == 12);
+		}
+
+		bool IsDate1BeforeDate2(sDate Date1, sDate Date2)
+		{
+			return  (Date1.Year < Date2.Year) ? true : ((Date1.Year == Date2.Year) ?
+				(Date1.Month < Date2.Month ? true : (Date1.Month == Date2.Month ?
+					Date1.Day < Date2.Day : false)) : false);
+		}
+
+		sDate IncreaseDateByOne(sDate Date) {
+
+			if (IsLastDayInMonth(Date)) {
+				if (IsLastMonthInYear(Date.Month)) {
+					Date.Month = 1;
+					Date.Day = 1;
+					Date.Year++;
+				}
+				else
+				{
+					Date.Day = 1;
+					Date.Month++;
+				}
+			}
+			else
+			{
+				Date.Day++;
+			}
+
+			return Date;
+		}
+
+		int GetDifferenceInDays(sDate date, sDate date1, bool IncludeEndDay = false) {
+
+			int days = 0;
+			while (IsDate1BeforeDate2(date, date1))
+			{
+				days++;
+				date = IncreaseDateByOne(date);  // ✅ FIX: increment date, not date1
+			}
+
+			return IncludeEndDay ? ++days : days;
+		}
+
+		int CompareTwoDates(sDate date, sDate date1, bool flag = false) {
+
+			int total1Days = 0;
+			int total2Days = 0;
+
+			for (int i = 1; i <= date.Month - 1; i++)
+			{
+				total1Days += NumberOfDaysInMonth(i, date.Year);
+			}
+			total1Days += date.Day;
+
+
+			for (int i = 1; i <= date1.Month - 1; i++)
+			{
+				total2Days += NumberOfDaysInMonth(i, date1.Year);
+			}
+			total2Days += date1.Day;
+
+
+			return flag ? (abs(total1Days - total2Days) + 1) : abs(total1Days - total2Days);
+
+		}
+
+		int main() {
+			sDate Date = ReadFullDate();
+			sDate Date1 = ReadFullDate();
+
+			cout << "\nDifference is : " << GetDifferenceInDays(Date, Date1) << "Day(s).";
+
+			cout << "\nDifference is (Include End Day) is: " << GetDifferenceInDays(Date, Date1, true) << "Day(s).";
+
+			return 0;
+		}
+	};
+	class Problem18Review {
+		int ReadNumber(string message) {
+			int Number;
+			cout << message;
+			cin >> Number;
+			return Number;
+		}
+
+		struct sDate
+		{
+			int Year;
+			int Month;
+			int Day;
+		};
+
+		bool IsLeapYear(int year) {
+			return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+		}
+
+		int NumberOfDaysInMonth(int month, int year) {
+			if (month < 1 || month > 12)
+				return 0;
+
+			int arrDays[12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+
+			if (month == 2)
+				return IsLeapYear(year) ? 29 : 28;
+			return arrDays[month - 1];
+		}
+
+		int PrintTotalDaysFromTheBeginningOfYear(int year, int month, int day) {
+
+			int TotalDays = 0;
+
+			for (int i = 1; i <= month - 1; i++)
+			{
+				TotalDays += NumberOfDaysInMonth(i, year);
+			}
+			TotalDays += day;
+			return TotalDays;
+
+		}
+
+		sDate ReadFullDate() {
+			sDate Date;
+
+			Date.Day = ReadNumber("\nPlease enter a Day : ");
+			Date.Month = ReadNumber("\nPlease enter a Month : ");
+			Date.Year = ReadNumber("\nPlease enter a Year : ");
+
+			return Date;
+		}
+
+		bool IsLastDayInMonth(sDate Date) {
+
+			return (Date.Day == NumberOfDaysInMonth(Date.Month, Date.Year));
+
+		}
+
+		bool IsLastMonthInYear(int month) {
+
+			return (month == 12);
+		}
+
+		bool IsDate1BeforeDate2(sDate Date1, sDate Date2)
+		{
+			return  (Date1.Year < Date2.Year) ? true : ((Date1.Year == Date2.Year) ?
+				(Date1.Month < Date2.Month ? true : (Date1.Month == Date2.Month ?
+					Date1.Day < Date2.Day : false)) : false);
+		}
+
+		sDate IncreaseDateByOne(sDate Date) {
+
+			if (IsLastDayInMonth(Date)) {
+				if (IsLastMonthInYear(Date.Month)) {
+					Date.Month = 1;
+					Date.Day = 1;
+					Date.Year++;
+				}
+				else
+				{
+					Date.Day = 1;
+					Date.Month++;
+				}
+			}
+			else
+			{
+				Date.Day++;
+			}
+
+			return Date;
+		}
+
+		int GetDifferenceInDays(sDate date, sDate date1, bool IncludeEndDay = false) {
+
+			int days = 0;
+			while (IsDate1BeforeDate2(date, date1))
+			{
+				days++;
+				date = IncreaseDateByOne(date);  // ✅ FIX: increment date, not date1
+			}
+
+			return IncludeEndDay ? ++days : days;
+		}
+
+		int CompareTwoDates(sDate date, sDate date1, bool flag = false) {
+
+			int total1Days = 0;
+			int total2Days = 0;
+
+			for (int i = 1; i <= date.Month - 1; i++)
+			{
+				total1Days += NumberOfDaysInMonth(i, date.Year);
+			}
+			total1Days += date.Day;
+
+
+			for (int i = 1; i <= date1.Month - 1; i++)
+			{
+				total2Days += NumberOfDaysInMonth(i, date1.Year);
+			}
+			total2Days += date1.Day;
+
+
+			return flag ? (abs(total1Days - total2Days) + 1) : abs(total1Days - total2Days);
+
+		}
+
+		sDate GetSystemDate() {
+
+			sDate date;
+
+			time_t t = time(0);
+			tm* now = localtime(&t);
+
+			date.Year = now->tm_year + 1900;
+			date.Month = now->tm_mon + 1;
+			date.Day = now->tm_mday;
+
+			return date;
+		}
+
+		int main() {
+
+			sDate Date = ReadFullDate();
+			cout << "\nPlease Enter Your Date Of Birth :\n";
+
+			sDate Date1 = GetSystemDate();
+			cout << "\nYour Age is : " << GetDifferenceInDays(Date, Date1, true) << "Day(s).";
 			return 0;
 		}
 	};
