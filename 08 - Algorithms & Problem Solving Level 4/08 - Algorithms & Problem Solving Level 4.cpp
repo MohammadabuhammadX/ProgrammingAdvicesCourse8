@@ -1,16 +1,17 @@
 ﻿#pragma warning(disable : 4996)
-
 #include <ctime>
 #include <iostream>
 #include <iomanip>
 
 using namespace std;
+
 struct sDate
 {
 	int Year;
 	int Month;
 	int Day;
 };
+
 sDate IncreaseDateByOne(sDate Date);
 
 int ReadNumber(string message) {
@@ -182,11 +183,13 @@ void PrintMonthStat(sDate Date) {
 	cout << "Today is " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
 		<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
 }
+
 void StartVacation(sDate Date) {
 
 	cout << "/nVacation From : " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
 		<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
 }
+
 void EndOfvacation(sDate Date) {
 
 	cout << "\nVacation To " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
