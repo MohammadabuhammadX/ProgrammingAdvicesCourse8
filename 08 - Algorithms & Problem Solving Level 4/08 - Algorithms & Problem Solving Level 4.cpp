@@ -1,7 +1,9 @@
 ﻿#pragma warning(disable : 4996)
+
 #include <ctime>
 #include <iostream>
 #include <iomanip>
+#include<vector>
 
 using namespace std;
 
@@ -11,8 +13,9 @@ struct sDate
 	int Month;
 	int Day;
 };
-
 sDate IncreaseDateByOne(sDate Date);
+
+enum enDateCompare { Before = -1, Equal = 0, After = 1 };
 
 int ReadNumber(string message) {
 	int Number;
@@ -78,11 +81,40 @@ bool IsFirstMonthInYear(int month) {
 	return (month == 1);
 }
 
-bool IsDate1BeforeDate2(sDate Date1, sDate Date2)
+bool IsDate1EqualDate2(sDate Date1, sDate Date2) {
+	return(Date1.Year == Date2.Year) ? ((Date1.Month == Date2.Month) ? (Date1.Day == Date2.Day) : false) : false;
+}
+
+bool IsDate1BeforeDate2(sDate Date1, sDate Date2)//
 {
 	return  (Date1.Year < Date2.Year) ? true : ((Date1.Year == Date2.Year) ?
 		(Date1.Month < Date2.Month ? true : (Date1.Month == Date2.Month ?
 			Date1.Day < Date2.Day : false)) : false);
+}
+
+bool IsDate1AfterDate2(sDate Date1, sDate Date2)//
+{
+	return (Date1.Year > Date2.Year) ? true : ((Date1.Year == Date2.Year) ?
+		(Date1.Month > Date2.Month ? true : (Date1.Month == Date2.Month ?
+			Date1.Day > Date2.Day : false)) : false);
+}
+
+bool IsDate1AfterDate2CourseApproach(sDate date1, sDate date2) {//
+
+	return (!IsDate1BeforeDate2(date1, date2) && !IsDate1EqualDate2(date1, date2));
+
+}
+
+enDateCompare CompareDates(sDate date1, sDate date2) {
+
+
+	if (IsDate1BeforeDate2(date1, date2))
+		return enDateCompare::Before;
+
+	if (IsDate1EqualDate2(date1, date2))
+		return enDateCompare::Equal;
+
+	return enDateCompare::After;
 }
 
 void SwapDates(sDate& date1, sDate& date2) {
@@ -261,8 +293,8 @@ int DaysUntilEndOfYear(sDate Date) {
 int GetActualVacationDays(sDate startDate, sDate endDate) {
 
 	int ctr = 0;
-	
-	while (IsDate1BeforeDate2(startDate , endDate))
+
+	while (IsDate1BeforeDate2(startDate, endDate))
 	{
 		if (IsBusinessDay(startDate)) {
 			ctr++;
@@ -272,27 +304,53 @@ int GetActualVacationDays(sDate startDate, sDate endDate) {
 	return ctr;
 }
 
+sDate GetDayToReturnToWorks(int days, sDate date) {
+
+	int ctr = 0;
+	while (ctr < days)
+	{
+		if (IsBusinessDay(date)) {
+			ctr++;
+		}
+		date = IncreaseDateByOne(date);
+	}
+
+	return date;
+
+}
+
+bool OverlapTwoPeriods(sDate startDate1, sDate endDate1, sDate startDate2, sDate endDate2) {
+
+	if (CompareDates(startDate1, endDate1) == enDateCompare::Before ||
+		CompareDates(startDate2, endDate2) == enDateCompare::After)
+		return false;
+	else
+		return true;
+}
+
+int PeriodLengthInDays(sDate startDate, sDate endDate, bool IncludeEndDate = false) {
+	return GetDifferenceInDays(startDate, endDate, IncludeEndDate);
+}
+
 int main() {
-	sDate startDate;
-	sDate endDate;
 
-	cout << "\nVaction Starts : " << endl;
+	cout << "First Periods : " << endl;;
 
-	startDate = ReadFullDate();
+	cout << "\nEnter Start Date1 : ";
+	sDate startDate1 = ReadFullDate();
+	cout << "\nEnter End Date1 : ";
+	sDate endDate1 = ReadFullDate();
 
-	cout << "\nVaction Ends : " << endl;
-	endDate = ReadFullDate();
+	cout << "\nEnter Start Date1 : ";
+	sDate startDate2 = ReadFullDate();
+	cout << "\nEnter End Date1 : ";
+	sDate endDate2 = ReadFullDate();
 
-	StartVacation(startDate);
-	EndOfvacation(endDate);
-
-	int vacationDays = GetActualVacationDays(startDate, endDate);
-	cout << "Actual business days: " << vacationDays << endl;
-
+	cout << "\nPeriod Length is : " << PeriodLengthInDays(startDate1, endDate1);
+	cout << "\nPeriod Length (Including End Date) is : " << PeriodLengthInDays(startDate1, endDate1, true);
 
 	return 0;
 }
-
 
 namespace problems {
 	class Problem1 {
@@ -2656,6 +2714,1173 @@ namespace problems {
 
 			int vacationDays = GetActualVacationDays(startDate, endDate);
 			cout << "Actual business days: " << vacationDays << endl;
+
+			return 0;
+		}
+	};
+	class Problem55 {
+		/*struct sDate
+		{
+			int Year;
+			int Month;
+			int Day;
+		};
+
+		sDate IncreaseDateByOne(sDate Date);
+
+		int ReadNumber(string message) {
+			int Number;
+			cout << message;
+			cin >> Number;
+			return Number;
+		}
+
+		bool IsLeapYear(int year) {
+			return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+		}
+
+		int NumberOfDaysInMonth(int month, int year) {
+			if (month < 1 || month > 12)
+				return 0;
+
+			int arrDays[12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+
+			if (month == 2)
+				return IsLeapYear(year) ? 29 : 28;
+			return arrDays[month - 1];
+		}
+
+		sDate ReadFullDate() {
+			sDate Date;
+
+			Date.Day = ReadNumber("\nPlease enter a Day : ");
+			Date.Month = ReadNumber("\nPlease enter a Month : ");
+			Date.Year = ReadNumber("\nPlease enter a Year : ");
+
+			return Date;
+		}
+
+		bool IsLastDayInMonth(sDate Date) {
+
+			return (Date.Day == NumberOfDaysInMonth(Date.Month, Date.Year));
+
+		}
+
+		bool IsLastMonthInYear(int month) {
+
+			return (month == 12);
+		}
+
+		bool IsFirstDayInMonth(sDate Date) {
+			return Date.Day == 1;
+		}
+
+		bool IsFirstMonthInYear(int month) {
+			return (month == 1);
+		}
+
+		sDate IncreaseDateByOne(sDate Date) {
+
+			if (IsLastDayInMonth(Date)) {
+				if (IsLastMonthInYear(Date.Month)) {
+					Date.Month = 1;
+					Date.Day = 1;
+					Date.Year++;
+				}
+				else
+				{
+					Date.Day = 1;
+					Date.Month++;
+				}
+			}
+			else
+			{
+				Date.Day++;
+			}
+
+			return Date;
+		}
+
+		string GetDayName(int DayOfWeekOrder) {
+			string names[] = { "Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday" };
+			return names[DayOfWeekOrder];
+		}
+
+		int GetDayIndex(int year, int month, int day) {
+			int a = (14 - month) / 12;
+			int y = year - a;
+			int m = month + 12 * a - 2;
+			return (day + y + y / 4 - y / 100 + y / 400 + (31 * m) / 12) % 7;
+		}
+
+		void PrintMonthStat(sDate Date) {
+
+			cout << "Today is " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
+				<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
+		}
+
+		void StartVacation(sDate Date) {
+
+			cout << "/nVacation From : " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
+				<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
+		}
+
+		void EndOfvacation(sDate Date) {
+
+			cout << "\nVacation To " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
+				<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
+		}
+
+		bool IsWeekEnd(sDate Date) {
+
+			int dayIndex = GetDayIndex(Date.Year, Date.Month, Date.Day);
+
+			return (dayIndex == 5 || dayIndex == 6);
+
+		}
+
+		bool IsBusinessDay(sDate Date) {
+			return  !IsWeekEnd(Date);
+		}
+
+		sDate GetDayToReturnToWorks(int days, sDate date) {
+
+			int ctr = 0;
+			while (ctr < days)
+			{
+				if (IsBusinessDay(date)) {
+					ctr++;
+				}
+				date = IncreaseDateByOne(date);
+			}
+
+			return date;
+
+		}
+
+		int main() {
+
+			sDate startDate;
+
+			cout << "Vaction Starts : " << endl;
+			startDate = ReadFullDate();
+
+			int userInputVacDays = ReadNumber("\nPlease Enter vacation days : ");
+
+			sDate returnDate = GetDayToReturnToWorks(userInputVacDays, startDate);
+
+			int dayIndex = GetDayIndex(returnDate.Year, returnDate.Month, returnDate.Day);
+
+			cout << "Return Date : " << GetDayName(dayIndex) << " "
+				<< returnDate.Day << "/" << returnDate.Month << "/" << returnDate.Year << endl;
+
+			return 0;
+		}*/
+	};
+	class Problem56 {
+
+		struct sDate
+		{
+			int Year;
+			int Month;
+			int Day;
+		};
+		//sDate IncreaseDateByOne(sDate Date);
+		sDate IncreaseDateByOne(sDate Date) {
+
+			if (IsLastDayInMonth(Date)) {
+				if (IsLastMonthInYear(Date.Month)) {
+					Date.Month = 1;
+					Date.Day = 1;
+					Date.Year++;
+				}
+				else
+				{
+					Date.Day = 1;
+					Date.Month++;
+				}
+			}
+			else
+			{
+				Date.Day++;
+			}
+
+			return Date;
+		}
+
+		enum enDateCompare { Before = -1, Equal = 0, After = 1 };
+
+		int ReadNumber(string message) {
+			int Number;
+			cout << message;
+			cin >> Number;
+			return Number;
+		}
+
+		bool IsLeapYear(int year) {
+			return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+		}
+
+		int NumberOfDaysInMonth(int month, int year) {
+			if (month < 1 || month > 12)
+				return 0;
+
+			int arrDays[12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+
+			if (month == 2)
+				return IsLeapYear(year) ? 29 : 28;
+			return arrDays[month - 1];
+		}
+
+		int PrintTotalDaysFromTheBeginningOfYear(int year, int month, int day) {
+
+			int TotalDays = 0;
+
+			for (int i = 1; i <= month - 1; i++)
+			{
+				TotalDays += NumberOfDaysInMonth(i, year);
+			}
+			TotalDays += day;
+			return TotalDays;
+
+		}
+
+		sDate ReadFullDate() {
+			sDate Date;
+
+			Date.Day = ReadNumber("\nPlease enter a Day : ");
+			Date.Month = ReadNumber("\nPlease enter a Month : ");
+			Date.Year = ReadNumber("\nPlease enter a Year : ");
+
+			return Date;
+		}
+
+		bool IsLastDayInMonth(sDate Date) {
+
+			return (Date.Day == NumberOfDaysInMonth(Date.Month, Date.Year));
+
+		}
+
+		bool IsLastMonthInYear(int month) {
+
+			return (month == 12);
+		}
+
+		bool IsFirstDayInMonth(sDate Date) {
+			return Date.Day == 1;
+		}
+
+		bool IsFirstMonthInYear(int month) {
+			return (month == 1);
+		}
+
+		bool IsDate1EqualDate2(sDate Date1, sDate Date2) {
+			return(Date1.Year == Date2.Year) ? ((Date1.Month == Date2.Month) ? (Date1.Day == Date2.Day) : false) : false;
+		}
+
+		bool IsDate1BeforeDate2(sDate Date1, sDate Date2)//
+		{
+			return  (Date1.Year < Date2.Year) ? true : ((Date1.Year == Date2.Year) ?
+				(Date1.Month < Date2.Month ? true : (Date1.Month == Date2.Month ?
+					Date1.Day < Date2.Day : false)) : false);
+		}
+		bool IsDate1AfterDate2(sDate Date1, sDate Date2)//
+		{
+			return (Date1.Year > Date2.Year) ? true : ((Date1.Year == Date2.Year) ?
+				(Date1.Month > Date2.Month ? true : (Date1.Month == Date2.Month ?
+					Date1.Day > Date2.Day : false)) : false);
+		}
+
+		bool IsDate1AfterDate2CourseApproach(sDate date1, sDate date2) {//
+
+			return (!IsDate1BeforeDate2(date1, date2) && !IsDate1EqualDate2(date1, date2));
+
+		}
+
+		enDateCompare CompareDates(sDate date1, sDate date2) {//
+
+
+			if (IsDate1BeforeDate2(date1, date2))
+				return enDateCompare::Before;
+
+			if (IsDate1EqualDate2(date1, date2))
+				return enDateCompare::Equal;
+
+			return enDateCompare::After;
+		}
+
+		void SwapDates(sDate& date1, sDate& date2) {
+
+			sDate TempDate;
+
+			TempDate.Year = date1.Year;
+			TempDate.Month = date1.Month;
+			TempDate.Day = date1.Day;
+
+			date1.Year = date2.Year;
+			date1.Month = date2.Month;
+			date1.Day = date2.Day;
+
+			date2.Year = TempDate.Year;
+			date2.Month = TempDate.Month;
+			date2.Day = TempDate.Day;
+		}
+
+		int GetDifferenceInDays(sDate date, sDate date1, bool IncludeEndDay = false) {
+
+			int days = 0;
+			short swapFlagValue = 1;
+
+			if (!IsDate1BeforeDate2(date, date1)) {
+				SwapDates(date, date1);
+				swapFlagValue = -1;
+			}
+
+			while (IsDate1BeforeDate2(date, date1))
+			{
+				days++;
+				date = IncreaseDateByOne(date);
+			}
+
+			return IncludeEndDay ? ++days * swapFlagValue : days * swapFlagValue;
+		}
+
+
+		int CompareTwoDates(sDate date, sDate date1, bool flag = false) {
+
+			int total1Days = 0;
+			int total2Days = 0;
+
+			for (int i = 1; i <= date.Month - 1; i++)
+			{
+				total1Days += NumberOfDaysInMonth(i, date.Year);
+			}
+			total1Days += date.Day;
+
+
+			for (int i = 1; i <= date1.Month - 1; i++)
+			{
+				total2Days += NumberOfDaysInMonth(i, date1.Year);
+			}
+			total2Days += date1.Day;
+
+
+			return flag ? (abs(total1Days - total2Days) + 1) : abs(total1Days - total2Days);
+
+		}
+
+		string GetDayName(int DayOfWeekOrder) {
+			string names[] = { "Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday" };
+			return names[DayOfWeekOrder];
+		}
+
+		int GetDayIndex(int year, int month, int day) {
+			int a = (14 - month) / 12;
+			int y = year - a;
+			int m = month + 12 * a - 2;
+			return (day + y + y / 4 - y / 100 + y / 400 + (31 * m) / 12) % 7;
+		}
+
+		void PrintMonthStat(sDate Date) {
+
+			cout << "Today is " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
+				<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
+		}
+
+		void StartVacation(sDate Date) {
+
+			cout << "/nVacation From : " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
+				<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
+		}
+
+		void EndOfvacation(sDate Date) {
+
+			cout << "\nVacation To " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
+				<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
+		}
+
+		sDate GetSystemDate() {
+
+			sDate date;
+
+			time_t t = time(0);
+			tm* now = localtime(&t);
+
+			date.Year = now->tm_year + 1900;
+			date.Month = now->tm_mon + 1;
+			date.Day = now->tm_mday;
+
+			return date;
+		}
+
+		bool IsEndOfWeek(sDate Date) {
+
+			int dayIndex = GetDayIndex(Date.Year, Date.Month, Date.Day);
+
+			return (dayIndex == 6);
+
+		}
+
+		bool IsWeekEnd(sDate Date) {
+
+			int dayIndex = GetDayIndex(Date.Year, Date.Month, Date.Day);
+
+			return (dayIndex == 5 || dayIndex == 6);
+
+		}
+
+		bool IsBusinessDay(sDate Date) {
+			return  !IsWeekEnd(Date);
+		}
+
+		int DaysUntilEndOfWeek(sDate date) {
+
+			int indexOfDay = GetDayIndex(date.Year, date.Month, date.Day);
+
+			return (7 - (indexOfDay + 1));
+
+		}
+
+		int DaysUntilEndOfMonth(sDate date) {
+
+			int numOfDaysInMonth = NumberOfDaysInMonth(date.Month, date.Year);
+
+			return (numOfDaysInMonth - date.Day);
+
+		}
+
+		int NumberOfDays(int year) {
+			return IsLeapYear(year) ? 366 : 365;
+		}
+
+		int DaysUntilEndOfYear(sDate Date) {
+
+			int totalDays = PrintTotalDaysFromTheBeginningOfYear(Date.Year, Date.Month, Date.Day);
+
+			return (NumberOfDays(Date.Year) - totalDays);
+
+		}
+
+		int GetActualVacationDays(sDate startDate, sDate endDate) {
+
+			int ctr = 0;
+
+			while (IsDate1BeforeDate2(startDate, endDate))
+			{
+				if (IsBusinessDay(startDate)) {
+					ctr++;
+				}
+				startDate = IncreaseDateByOne(startDate);
+			}
+			return ctr;
+		}
+
+		sDate GetDayToReturnToWorks(int days, sDate date) {
+
+			int ctr = 0;
+			while (ctr < days)
+			{
+				if (IsBusinessDay(date)) {
+					ctr++;
+				}
+				date = IncreaseDateByOne(date);
+			}
+
+			return date;
+
+		}
+
+		int main() {
+
+			cout << "\nEnter Date1 : ";
+			sDate Date1 = ReadFullDate();
+			cout << "\nEnter Date2 : ";
+			sDate Date2 = ReadFullDate();
+
+			cout << "\nCompare Result = " << CompareDates(Date1, Date2);
+
+			return 0;
+		}
+	};
+	class Problem57Review{
+		struct sDate
+		{
+			int Year;
+			int Month;
+			int Day;
+		};
+		//sDate IncreaseDateByOne(sDate Date);
+
+		enum enDateCompare { Before = -1, Equal = 0, After = 1 };
+
+		int ReadNumber(string message) {
+			int Number;
+			cout << message;
+			cin >> Number;
+			return Number;
+		}
+
+		bool IsLeapYear(int year) {
+			return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+		}
+
+		int NumberOfDaysInMonth(int month, int year) {
+			if (month < 1 || month > 12)
+				return 0;
+
+			int arrDays[12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+
+			if (month == 2)
+				return IsLeapYear(year) ? 29 : 28;
+			return arrDays[month - 1];
+		}
+
+		int PrintTotalDaysFromTheBeginningOfYear(int year, int month, int day) {
+
+			int TotalDays = 0;
+
+			for (int i = 1; i <= month - 1; i++)
+			{
+				TotalDays += NumberOfDaysInMonth(i, year);
+			}
+			TotalDays += day;
+			return TotalDays;
+
+		}
+
+		sDate ReadFullDate() {
+			sDate Date;
+
+			Date.Day = ReadNumber("\nPlease enter a Day : ");
+			Date.Month = ReadNumber("\nPlease enter a Month : ");
+			Date.Year = ReadNumber("\nPlease enter a Year : ");
+
+			return Date;
+		}
+
+		bool IsLastDayInMonth(sDate Date) {
+
+			return (Date.Day == NumberOfDaysInMonth(Date.Month, Date.Year));
+
+		}
+
+		bool IsLastMonthInYear(int month) {
+
+			return (month == 12);
+		}
+
+		bool IsFirstDayInMonth(sDate Date) {
+			return Date.Day == 1;
+		}
+
+		bool IsFirstMonthInYear(int month) {
+			return (month == 1);
+		}
+
+		bool IsDate1EqualDate2(sDate Date1, sDate Date2) {
+			return(Date1.Year == Date2.Year) ? ((Date1.Month == Date2.Month) ? (Date1.Day == Date2.Day) : false) : false;
+		}
+
+		bool IsDate1BeforeDate2(sDate Date1, sDate Date2)//
+		{
+			return  (Date1.Year < Date2.Year) ? true : ((Date1.Year == Date2.Year) ?
+				(Date1.Month < Date2.Month ? true : (Date1.Month == Date2.Month ?
+					Date1.Day < Date2.Day : false)) : false);
+		}
+
+		bool IsDate1AfterDate2(sDate Date1, sDate Date2)//
+		{
+			return (Date1.Year > Date2.Year) ? true : ((Date1.Year == Date2.Year) ?
+				(Date1.Month > Date2.Month ? true : (Date1.Month == Date2.Month ?
+					Date1.Day > Date2.Day : false)) : false);
+		}
+
+		bool IsDate1AfterDate2CourseApproach(sDate date1, sDate date2) {//
+
+			return (!IsDate1BeforeDate2(date1, date2) && !IsDate1EqualDate2(date1, date2));
+
+		}
+
+		enDateCompare CompareDates(sDate date1, sDate date2) {
+
+
+			if (IsDate1BeforeDate2(date1, date2))
+				return enDateCompare::Before;
+
+			if (IsDate1EqualDate2(date1, date2))
+				return enDateCompare::Equal;
+
+			return enDateCompare::After;
+		}
+
+		void SwapDates(sDate& date1, sDate& date2) {
+
+			sDate TempDate;
+
+			TempDate.Year = date1.Year;
+			TempDate.Month = date1.Month;
+			TempDate.Day = date1.Day;
+
+			date1.Year = date2.Year;
+			date1.Month = date2.Month;
+			date1.Day = date2.Day;
+
+			date2.Year = TempDate.Year;
+			date2.Month = TempDate.Month;
+			date2.Day = TempDate.Day;
+		}
+
+		int GetDifferenceInDays(sDate date, sDate date1, bool IncludeEndDay = false) {
+
+			int days = 0;
+			short swapFlagValue = 1;
+
+			if (!IsDate1BeforeDate2(date, date1)) {
+				SwapDates(date, date1);
+				swapFlagValue = -1;
+			}
+
+			while (IsDate1BeforeDate2(date, date1))
+			{
+				days++;
+				date = IncreaseDateByOne(date);
+			}
+
+			return IncludeEndDay ? ++days * swapFlagValue : days * swapFlagValue;
+		}
+
+		sDate IncreaseDateByOne(sDate Date) {
+
+			if (IsLastDayInMonth(Date)) {
+				if (IsLastMonthInYear(Date.Month)) {
+					Date.Month = 1;
+					Date.Day = 1;
+					Date.Year++;
+				}
+				else
+				{
+					Date.Day = 1;
+					Date.Month++;
+				}
+			}
+			else
+			{
+				Date.Day++;
+			}
+
+			return Date;
+		}
+
+		int CompareTwoDates(sDate date, sDate date1, bool flag = false) {
+
+			int total1Days = 0;
+			int total2Days = 0;
+
+			for (int i = 1; i <= date.Month - 1; i++)
+			{
+				total1Days += NumberOfDaysInMonth(i, date.Year);
+			}
+			total1Days += date.Day;
+
+
+			for (int i = 1; i <= date1.Month - 1; i++)
+			{
+				total2Days += NumberOfDaysInMonth(i, date1.Year);
+			}
+			total2Days += date1.Day;
+
+
+			return flag ? (abs(total1Days - total2Days) + 1) : abs(total1Days - total2Days);
+
+		}
+
+		string GetDayName(int DayOfWeekOrder) {
+			string names[] = { "Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday" };
+			return names[DayOfWeekOrder];
+		}
+
+		int GetDayIndex(int year, int month, int day) {
+			int a = (14 - month) / 12;
+			int y = year - a;
+			int m = month + 12 * a - 2;
+			return (day + y + y / 4 - y / 100 + y / 400 + (31 * m) / 12) % 7;
+		}
+
+		void PrintMonthStat(sDate Date) {
+
+			cout << "Today is " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
+				<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
+		}
+
+		void StartVacation(sDate Date) {
+
+			cout << "/nVacation From : " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
+				<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
+		}
+
+		void EndOfvacation(sDate Date) {
+
+			cout << "\nVacation To " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
+				<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
+		}
+
+		sDate GetSystemDate() {
+
+			sDate date;
+
+			time_t t = time(0);
+			tm* now = localtime(&t);
+
+			date.Year = now->tm_year + 1900;
+			date.Month = now->tm_mon + 1;
+			date.Day = now->tm_mday;
+
+			return date;
+		}
+
+		bool IsEndOfWeek(sDate Date) {
+
+			int dayIndex = GetDayIndex(Date.Year, Date.Month, Date.Day);
+
+			return (dayIndex == 6);
+
+		}
+
+		bool IsWeekEnd(sDate Date) {
+
+			int dayIndex = GetDayIndex(Date.Year, Date.Month, Date.Day);
+
+			return (dayIndex == 5 || dayIndex == 6);
+
+		}
+
+		bool IsBusinessDay(sDate Date) {
+			return  !IsWeekEnd(Date);
+		}
+
+		int DaysUntilEndOfWeek(sDate date) {
+
+			int indexOfDay = GetDayIndex(date.Year, date.Month, date.Day);
+
+			return (7 - (indexOfDay + 1));
+
+		}
+
+		int DaysUntilEndOfMonth(sDate date) {
+
+			int numOfDaysInMonth = NumberOfDaysInMonth(date.Month, date.Year);
+
+			return (numOfDaysInMonth - date.Day);
+
+		}
+
+		int NumberOfDays(int year) {
+			return IsLeapYear(year) ? 366 : 365;
+		}
+
+		int DaysUntilEndOfYear(sDate Date) {
+
+			int totalDays = PrintTotalDaysFromTheBeginningOfYear(Date.Year, Date.Month, Date.Day);
+
+			return (NumberOfDays(Date.Year) - totalDays);
+
+		}
+
+		int GetActualVacationDays(sDate startDate, sDate endDate) {
+
+			int ctr = 0;
+
+			while (IsDate1BeforeDate2(startDate, endDate))
+			{
+				if (IsBusinessDay(startDate)) {
+					ctr++;
+				}
+				startDate = IncreaseDateByOne(startDate);
+			}
+			return ctr;
+		}
+
+		sDate GetDayToReturnToWorks(int days, sDate date) {
+
+			int ctr = 0;
+			while (ctr < days)
+			{
+				if (IsBusinessDay(date)) {
+					ctr++;
+				}
+				date = IncreaseDateByOne(date);
+			}
+
+			return date;
+
+		}
+
+		bool OverlapTwoPeriods(sDate startDate1, sDate endDate1, sDate startDate2, sDate endDate2) {
+
+			if (CompareDates(startDate1, endDate1) == enDateCompare::Before ||
+				CompareDates(startDate2, endDate2) == enDateCompare::After)
+				return false;
+			else
+				return true;
+		}
+
+		int main() {
+
+			//cout << "First Periods : " << endl;;
+
+			//cout << "\nEnter Start Date1 : ";
+			//sDate startDate = ReadFullDate();
+			//cout << "\nEnter End Date1 : ";
+			//sDate endDate1 = ReadFullDate();
+
+			//cout << "\nEnter Start Date2 : ";
+			//sDate startDate = ReadFullDate();
+			//cout << "\nEnter End Date2 : ";
+			//sDate endDate1 = ReadFullDate();
+
+
+
+
+			return 0;
+		}
+	};
+	class Problem58 {
+		struct sDate
+		{
+			int Year;
+			int Month;
+			int Day;
+		};
+		sDate IncreaseDateByOne(sDate Date);
+
+		enum enDateCompare { Before = -1, Equal = 0, After = 1 };
+
+		int ReadNumber(string message) {
+			int Number;
+			cout << message;
+			cin >> Number;
+			return Number;
+		}
+
+		bool IsLeapYear(int year) {
+			return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+		}
+
+		int NumberOfDaysInMonth(int month, int year) {
+			if (month < 1 || month > 12)
+				return 0;
+
+			int arrDays[12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+
+			if (month == 2)
+				return IsLeapYear(year) ? 29 : 28;
+			return arrDays[month - 1];
+		}
+
+		int PrintTotalDaysFromTheBeginningOfYear(int year, int month, int day) {
+
+			int TotalDays = 0;
+
+			for (int i = 1; i <= month - 1; i++)
+			{
+				TotalDays += NumberOfDaysInMonth(i, year);
+			}
+			TotalDays += day;
+			return TotalDays;
+
+		}
+
+		sDate ReadFullDate() {
+			sDate Date;
+
+			Date.Day = ReadNumber("\nPlease enter a Day : ");
+			Date.Month = ReadNumber("\nPlease enter a Month : ");
+			Date.Year = ReadNumber("\nPlease enter a Year : ");
+
+			return Date;
+		}
+
+		bool IsLastDayInMonth(sDate Date) {
+
+			return (Date.Day == NumberOfDaysInMonth(Date.Month, Date.Year));
+
+		}
+
+		bool IsLastMonthInYear(int month) {
+
+			return (month == 12);
+		}
+
+		bool IsFirstDayInMonth(sDate Date) {
+			return Date.Day == 1;
+		}
+
+		bool IsFirstMonthInYear(int month) {
+			return (month == 1);
+		}
+
+		bool IsDate1EqualDate2(sDate Date1, sDate Date2) {
+			return(Date1.Year == Date2.Year) ? ((Date1.Month == Date2.Month) ? (Date1.Day == Date2.Day) : false) : false;
+		}
+
+		bool IsDate1BeforeDate2(sDate Date1, sDate Date2)//
+		{
+			return  (Date1.Year < Date2.Year) ? true : ((Date1.Year == Date2.Year) ?
+				(Date1.Month < Date2.Month ? true : (Date1.Month == Date2.Month ?
+					Date1.Day < Date2.Day : false)) : false);
+		}
+
+		bool IsDate1AfterDate2(sDate Date1, sDate Date2)//
+		{
+			return (Date1.Year > Date2.Year) ? true : ((Date1.Year == Date2.Year) ?
+				(Date1.Month > Date2.Month ? true : (Date1.Month == Date2.Month ?
+					Date1.Day > Date2.Day : false)) : false);
+		}
+
+		bool IsDate1AfterDate2CourseApproach(sDate date1, sDate date2) {//
+
+			return (!IsDate1BeforeDate2(date1, date2) && !IsDate1EqualDate2(date1, date2));
+
+		}
+
+		enDateCompare CompareDates(sDate date1, sDate date2) {
+
+
+			if (IsDate1BeforeDate2(date1, date2))
+				return enDateCompare::Before;
+
+			if (IsDate1EqualDate2(date1, date2))
+				return enDateCompare::Equal;
+
+			return enDateCompare::After;
+		}
+
+		void SwapDates(sDate& date1, sDate& date2) {
+
+			sDate TempDate;
+
+			TempDate.Year = date1.Year;
+			TempDate.Month = date1.Month;
+			TempDate.Day = date1.Day;
+
+			date1.Year = date2.Year;
+			date1.Month = date2.Month;
+			date1.Day = date2.Day;
+
+			date2.Year = TempDate.Year;
+			date2.Month = TempDate.Month;
+			date2.Day = TempDate.Day;
+		}
+
+		int GetDifferenceInDays(sDate date, sDate date1, bool IncludeEndDay = false) {
+
+			int days = 0;
+			short swapFlagValue = 1;
+
+			if (!IsDate1BeforeDate2(date, date1)) {
+				SwapDates(date, date1);
+				swapFlagValue = -1;
+			}
+
+			while (IsDate1BeforeDate2(date, date1))
+			{
+				days++;
+				date = IncreaseDateByOne(date);
+			}
+
+			return IncludeEndDay ? ++days * swapFlagValue : days * swapFlagValue;
+		}
+
+		sDate IncreaseDateByOne(sDate Date) {
+
+			if (IsLastDayInMonth(Date)) {
+				if (IsLastMonthInYear(Date.Month)) {
+					Date.Month = 1;
+					Date.Day = 1;
+					Date.Year++;
+				}
+				else
+				{
+					Date.Day = 1;
+					Date.Month++;
+				}
+			}
+			else
+			{
+				Date.Day++;
+			}
+
+			return Date;
+		}
+
+		int CompareTwoDates(sDate date, sDate date1, bool flag = false) {
+
+			int total1Days = 0;
+			int total2Days = 0;
+
+			for (int i = 1; i <= date.Month - 1; i++)
+			{
+				total1Days += NumberOfDaysInMonth(i, date.Year);
+			}
+			total1Days += date.Day;
+
+
+			for (int i = 1; i <= date1.Month - 1; i++)
+			{
+				total2Days += NumberOfDaysInMonth(i, date1.Year);
+			}
+			total2Days += date1.Day;
+
+
+			return flag ? (abs(total1Days - total2Days) + 1) : abs(total1Days - total2Days);
+
+		}
+
+		string GetDayName(int DayOfWeekOrder) {
+			string names[] = { "Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday" };
+			return names[DayOfWeekOrder];
+		}
+
+		int GetDayIndex(int year, int month, int day) {
+			int a = (14 - month) / 12;
+			int y = year - a;
+			int m = month + 12 * a - 2;
+			return (day + y + y / 4 - y / 100 + y / 400 + (31 * m) / 12) % 7;
+		}
+
+		void PrintMonthStat(sDate Date) {
+
+			cout << "Today is " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
+				<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
+		}
+
+		void StartVacation(sDate Date) {
+
+			cout << "/nVacation From : " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
+				<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
+		}
+
+		void EndOfvacation(sDate Date) {
+
+			cout << "\nVacation To " << GetDayName(GetDayIndex(Date.Year, Date.Month, Date.Day))
+				<< " , " << Date.Day << "/" << Date.Month << "/" << Date.Year << endl;
+		}
+
+		sDate GetSystemDate() {
+
+			sDate date;
+
+			time_t t = time(0);
+			tm* now = localtime(&t);
+
+			date.Year = now->tm_year + 1900;
+			date.Month = now->tm_mon + 1;
+			date.Day = now->tm_mday;
+
+			return date;
+		}
+
+		bool IsEndOfWeek(sDate Date) {
+
+			int dayIndex = GetDayIndex(Date.Year, Date.Month, Date.Day);
+
+			return (dayIndex == 6);
+
+		}
+
+		bool IsWeekEnd(sDate Date) {
+
+			int dayIndex = GetDayIndex(Date.Year, Date.Month, Date.Day);
+
+			return (dayIndex == 5 || dayIndex == 6);
+
+		}
+
+		bool IsBusinessDay(sDate Date) {
+			return  !IsWeekEnd(Date);
+		}
+
+		int DaysUntilEndOfWeek(sDate date) {
+
+			int indexOfDay = GetDayIndex(date.Year, date.Month, date.Day);
+
+			return (7 - (indexOfDay + 1));
+
+		}
+
+		int DaysUntilEndOfMonth(sDate date) {
+
+			int numOfDaysInMonth = NumberOfDaysInMonth(date.Month, date.Year);
+
+			return (numOfDaysInMonth - date.Day);
+
+		}
+
+		int NumberOfDays(int year) {
+			return IsLeapYear(year) ? 366 : 365;
+		}
+
+		int DaysUntilEndOfYear(sDate Date) {
+
+			int totalDays = PrintTotalDaysFromTheBeginningOfYear(Date.Year, Date.Month, Date.Day);
+
+			return (NumberOfDays(Date.Year) - totalDays);
+
+		}
+
+		int GetActualVacationDays(sDate startDate, sDate endDate) {
+
+			int ctr = 0;
+
+			while (IsDate1BeforeDate2(startDate, endDate))
+			{
+				if (IsBusinessDay(startDate)) {
+					ctr++;
+				}
+				startDate = IncreaseDateByOne(startDate);
+			}
+			return ctr;
+		}
+
+		sDate GetDayToReturnToWorks(int days, sDate date) {
+
+			int ctr = 0;
+			while (ctr < days)
+			{
+				if (IsBusinessDay(date)) {
+					ctr++;
+				}
+				date = IncreaseDateByOne(date);
+			}
+
+			return date;
+
+		}
+
+		bool OverlapTwoPeriods(sDate startDate1, sDate endDate1, sDate startDate2, sDate endDate2) {
+
+			if (CompareDates(startDate1, endDate1) == enDateCompare::Before ||
+				CompareDates(startDate2, endDate2) == enDateCompare::After)
+				return false;
+			else
+				return true;
+		}
+
+		int PeriodLengthInDays(sDate startDate, sDate endDate, bool IncludeEndDate = false) {
+			return GetDifferenceInDays(startDate, endDate, IncludeEndDate);
+		}
+
+		int main() {
+
+			cout << "First Periods : " << endl;;
+
+			cout << "\nEnter Start Date1 : ";
+			sDate startDate1 = ReadFullDate();
+			cout << "\nEnter End Date1 : ";
+			sDate endDate1 = ReadFullDate();
+
+			cout << "\nPeriod Length is : " << PeriodLengthInDays(startDate1, endDate1);
+			cout << "\nPeriod Length (Including End Date) is : " << PeriodLengthInDays(startDate1, endDate1, true);
 
 			return 0;
 		}
